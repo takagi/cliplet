@@ -2,14 +2,21 @@
 set -euo pipefail
 
 project_dir="$1"
-nas_path_file="$project_dir/nas_path.txt"
+config_file="$project_dir/config.sh"
 
-if [[ ! -f "$nas_path_file" ]]; then
-  echo "nas_path.txt not found in $project_dir" >&2
+if [[ ! -f "$config_file" ]]; then
+  echo "config.sh not found in $project_dir" >&2
   exit 1
 fi
 
-nas_path=$(< "$nas_path_file")
+source "$config_file"
+
+if [[ -z "${NAS_SOURCE_DIR:-}" ]]; then
+  echo "NAS_SOURCE_DIR is not set in $config_file" >&2
+  exit 1
+fi
+
+nas_path="$NAS_SOURCE_DIR"
 local_output_dir="$project_dir/output"
 final_file="$local_output_dir/final.mp4"
 
@@ -23,9 +30,7 @@ echo "Pushing to $nas_path..."
 # ファイル一覧
 files_to_copy=(
   "$final_file"
-  "$project_dir/exclude.csv"
-  "$project_dir/title.txt"
-  "$project_dir/nas_path.txt"
+  "$project_dir/config.sh"
 )
 
 # コピー
