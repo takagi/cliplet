@@ -3,17 +3,28 @@
 
 project_dir="$1"
 clip_dir="$project_dir/output/cut_clips"
-title_file="$project_dir/title.txt"
 title_font="fonts/NotoSansJP-Bold.ttf"
 subtitle_font="fonts/NotoSansJP-Regular.ttf"
 fade_duration=1
 log_file="$project_dir/output/add_title_and_fade.log"
 
+config_file="$project_dir/config.sh"
+if [[ ! -f "$config_file" ]]; then
+  echo "config.sh not found in $project_dir" >&2
+  exit 1
+fi
+
+source "$config_file"
+
+main_title="${TITLE:-}"
+subtitle="${SUBTITLE:-}"
+if [[ -z "$main_title" ]]; then
+  echo "TITLE is not set in $config_file" >&2
+  exit 1
+fi
+
 mkdir -p "$project_dir/output"
 > "$log_file"
-
-main_title=$(sed -n 1p "$title_file")
-subtitle=$(sed -n 2p "$title_file")
 
 first_clip=$(ls "$clip_dir"/*.mp4 | sort | head -n 1)
 last_clip=$(ls "$clip_dir"/*.mp4 | sort | tail -n 1)

@@ -1,11 +1,24 @@
 #!/bin/bash
 # Upload to YouTube via docker using .youtube-upload dir for secrets
+set -euo pipefail
 
 project_dir="$1"
 output_file="$project_dir/output/final.mp4"
-title_file="$project_dir/title.txt"
+config_file="$project_dir/config.sh"
 secrets_dir=".youtube-upload"
 docker_image="youtube-upload"
+
+if [[ ! -f "$config_file" ]]; then
+  echo "config.sh not found in $project_dir" >&2
+  exit 1
+fi
+
+source "$config_file"
+
+if [[ -z "${TITLE:-}" ]]; then
+  echo "TITLE is not set in $config_file" >&2
+  exit 1
+fi
 
 # Build the docker image (only if not already built)
 echo "Building Docker image..."
@@ -15,8 +28,8 @@ docker build -t "$docker_image" submodules/youtube-upload || {
 }
 
 # Read metadata
-title=$(sed -n 1p "$title_file")
-description=$(sed -n 2p "$title_file")
+title="$TITLE"
+description="${SUBTITLE:-}"
 
 # Run upload via Docker
 docker run --rm \

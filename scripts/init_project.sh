@@ -8,24 +8,26 @@ if [ -z "$project_dir" ]; then
   exit 1
 fi
 
-if [ -e "$project_dir/exclude.csv" ] || [ -e "$project_dir/title.txt" ]; then
-  echo "Error: exclude.csv or title.txt already exists in $project_dir"
+if [ -e "$project_dir/config.sh" ]; then
+  echo "Error: config.sh already exists in $project_dir"
   exit 1
 fi
 
 mkdir -p "$project_dir/input_clips"
 
-cat > "$project_dir/exclude.csv" <<EOF
-clip,exclude_ranges
-EOF
+cat > "$project_dir/config.sh" <<'EOF'
+#!/bin/bash
 
-cat > "$project_dir/title.txt" <<EOF
-Your Title Here
-Your Subtitle Here
-EOF
+# Project metadata
+TITLE="Your Title Here"
+SUBTITLE="Your Subtitle Here"
 
-cat > "$project_dir/nas_path.txt" <<EOF
-/path/to/nas/project_dir
+# NAS base directory containing input_clips/
+NAS_SOURCE_DIR="/path/to/nas/project_dir"
+
+# Optional exclusion ranges per clip (format: "start-end;start-end")
+declare -A EXCLUDES=()
+# EXCLUDES["C0001.mp4"]="12.5-18.2;30.0-42.0"
 EOF
 
 echo "Initialized project at $project_dir"

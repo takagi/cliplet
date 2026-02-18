@@ -1,17 +1,25 @@
 #!/bin/bash
-# Cut or link clips based on exclusion ranges in exclude.csv for a given project directory
+# Cut or link clips based on exclusion ranges in config.sh for a given project directory
 
 project_dir="$1"
 input_dir="$project_dir/input_clips"
 output_dir="$project_dir/output/cut_clips"
-exclude_file="$project_dir/exclude.csv"
+declare -A EXCLUDES=()
+config_file="$project_dir/config.sh"
+
+if [[ ! -f "$config_file" ]]; then
+  echo "config.sh not found in $project_dir" >&2
+  exit 1
+fi
+
+source "$config_file"
 
 mkdir -p "$output_dir"
 
 for clip in $(ls "$input_dir"); do
   input="$input_dir/$clip"
   base="${clip%.*}"
-  exclude_ranges=$(awk -F, -v c="$clip" '$1 == c { print $2 }' "$exclude_file")
+  exclude_ranges="${EXCLUDES[$clip]:-}"
 
   if [ -z "$exclude_ranges" ]; then
     # No exclusion → hard link the whole file

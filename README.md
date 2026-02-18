@@ -9,8 +9,7 @@ Before you start, prepare a project directory under `projects/` like this:
 ```
 projects/example/
 ├── input_clips/        # Place your original video clips here
-├── exclude.csv         # CSV file specifying ranges to exclude
-└── title.txt           # First line: title, Second line: subtitle
+└── config.sh           # Project settings (title, subtitle, NAS path, excludes)
 ```
 
 Then run the full workflow with:
@@ -29,7 +28,7 @@ make PROJECT=projects/example
 
 Available targets:
 
-- `make cut` – Cut or link clips using `exclude.csv`
+- `make cut` – Cut or link clips using `config.sh`
 - `make title` – Add title, subtitle, fade-in/out
 - `make combine` – Concatenate clips and encode audio
 - `make check` – Print info about final.mp4
@@ -42,25 +41,18 @@ Available targets:
 
 ## Sample files
 
-### `exclude.csv`
+### `config.sh`
 
-```csv
-clip,exclude_ranges
-C0010.MP4,00:03-00:08;00:15-00:20
-C0011.MP4,00:00-00:02
-```
+```bash
+#!/bin/bash
 
-### `title.txt`
+TITLE="Sports Day 2024"
+SUBTITLE="Elementary School Field Event"
+NAS_SOURCE_DIR="/path/to/nas/project_dir"
 
-```
-Sports Day 2024
-Elementary School Field Event
-```
-
-### `nas_path.txt`
-
-```
-/path/to/nas/project_dir
+declare -A EXCLUDES=()
+EXCLUDES["C0010.MP4"]="00:03-00:08;00:15-00:20"
+EXCLUDES["C0011.MP4"]="00:00-00:02"
 ```
 
 ## Example output
