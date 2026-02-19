@@ -1,5 +1,16 @@
 # Usage:
-# make OR make PROJECT=projects/example
+# make OR make PROJECT=projects/example OR make init <project-name>
+
+# Allow `make init <project-name>` to set the project directory.
+ifneq ($(filter init,$(MAKECMDGOALS)),)
+  INIT_ARGS := $(wordlist 2,999,$(MAKECMDGOALS))
+  ifneq ($(strip $(INIT_ARGS)),)
+    PROJECT := projects/$(word 1,$(INIT_ARGS))
+    .PHONY: $(INIT_ARGS)
+    $(INIT_ARGS):
+	@:
+  endif
+endif
 
 ifeq ($(origin PROJECT), undefined)
   ifneq ($(filter patch-youtube-upload,$(MAKECMDGOALS)),patch-youtube-upload)
@@ -12,7 +23,7 @@ ifeq ($(origin PROJECT), undefined)
   endif
 endif
 
-all: cut title combine check
+all: pull cut title combine check upload push
 
 cut:
 	bash scripts/cut_clips.sh $(PROJECT)

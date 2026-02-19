@@ -1,11 +1,17 @@
 #!/bin/bash
 # Initialize a new cliplet project directory with sample input files
 
-project_dir="$1"
+project_arg="$1"
 
-if [ -z "$project_dir" ]; then
-  echo "Usage: $0 <project_dir>"
+if [ -z "$project_arg" ]; then
+  echo "Usage: $0 <project-name | project_dir>"
   exit 1
+fi
+
+if [[ "$project_arg" == */* ]]; then
+  project_dir="$project_arg"
+else
+  project_dir="projects/$project_arg"
 fi
 
 if [ -e "$project_dir/config.sh" ]; then

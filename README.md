@@ -26,6 +26,12 @@ Or specify the project directory manually:
 make PROJECT=projects/example
 ```
 
+To create a new project directory under `projects/`:
+
+```bash
+make init example
+```
+
 Available targets:
 
 - `make cut` – Cut or link clips using `config.sh`
@@ -34,7 +40,7 @@ Available targets:
 - `make check` – Print info about final.mp4
 - `make check-raw` – Run ffprobe and show raw stream info
 - `make upload` – Upload final.mp4 to YouTube using youtube-upload
-- `make init` – Create initial project structure
+- `make init <name>` – Create initial project structure under `projects/<name>`
 - `make pull` - Pull input_clips from NAS
 - `make push` - Push final.mp4 and config files to NAS
 - `make clean` – Remove output files
