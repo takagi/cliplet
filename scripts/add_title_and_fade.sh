@@ -31,15 +31,20 @@ last_clip=$(ls "$clip_dir"/*.mp4 | sort | tail -n 1)
 
 # --- Title and fade-in on first clip ---
 echo "Adding title and fade-in to: $(basename "$first_clip")"
-ffmpeg -y -hide_banner -hwaccel vaapi -vaapi_device /dev/dri/renderD128 \
+ffmpeg -y -hide_banner \
   -i "$first_clip" \
   -vf "\
 drawtext=fontfile=$title_font:text='$main_title':x=180:y=main_h-480:fontsize=140:fontcolor=white:alpha='if(lt(t,4),1, if(lt(t,5), 1-(t-4), 0))',\
 drawtext=fontfile=$subtitle_font:text='$subtitle':x=180:y=main_h-300:fontsize=120:fontcolor=white:alpha='if(lt(t,4),1, if(lt(t,5), 1-(t-4), 0))',\
-fade=t=in:st=0:d=$fade_duration,format=nv12,hwupload" \
+fade=t=in:st=0:d=$fade_duration" \
   -af "afade=t=in:st=0:d=$fade_duration" \
-  -c:v h264_vaapi -rc:v vbr -b:v 40M -maxrate 45M -minrate 30M \
-  -profile:v high -level 4.1 -g 30 -bf 2 -refs 3 \
+  -c:v h264_nvenc \
+  -preset p6 \
+  -rc vbr \
+  -cq 18 \
+  -b:v 0 \
+  -profile:v high \
+  -g 30 -bf 2 -refs 3 \
   -c:a pcm_s16be -ar 48000 -ac 2 \
   -movflags +faststart \
   -progress pipe:1 -stats \
@@ -67,12 +72,17 @@ duration=$(ffprobe -v error -show_entries format=duration \
 fade_start=$(echo "$duration - $fade_duration" | bc -l)
 fade_start=$(printf "%.3f" "$fade_start")
 
-ffmpeg -y -hide_banner -hwaccel vaapi -vaapi_device /dev/dri/renderD128 \
+ffmpeg -y -hide_banner \
   -i "$last_clip" \
-  -vf "fade=t=out:st=$fade_start:d=$fade_duration,format=nv12,hwupload" \
+  -vf "fade=t=out:st=$fade_start:d=$fade_duration" \
   -af "afade=t=out:st=$fade_start:d=$fade_duration" \
-  -c:v h264_vaapi -rc:v vbr -b:v 40M -maxrate 45M -minrate 30M \
-  -profile:v high -level 4.1 -g 30 -bf 2 -refs 3 \
+  -c:v h264_nvenc \
+  -preset p6 \
+  -rc vbr \
+  -cq 18 \
+  -b:v 0 \
+  -profile:v high \
+  -g 30 -bf 2 -refs 3 \
   -c:a pcm_s16be -ar 48000 -ac 2 \
   -movflags +faststart \
   -progress pipe:1 -stats \
