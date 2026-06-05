@@ -8,6 +8,8 @@ config_file="$project_dir/config.sh"
 secrets_dir=".youtube-upload"
 docker_image="youtube-upload"
 
+source .env.local
+
 if [[ ! -f "$config_file" ]]; then
   echo "config.sh not found in $project_dir" >&2
   exit 1
@@ -41,4 +43,5 @@ docker run --rm \
   --title "$title" \
   --description "$description" \
   --privacy private \
-  /home/python/output/final.mp4
+  /home/python/output/final.mp4 \
+  --playlist "${PLAYLIST}" \

@@ -3,3 +3,4 @@ projects/*
 
 client_secrets.json
 credentials.json
+.env.local
