@@ -14,11 +14,23 @@ fi
 
 source "$config_file"
 
+# Minimum clip length in seconds; shorter clips are skipped (0 disables).
+min_duration="${MIN_DURATION:-1.0}"
+
 mkdir -p "$output_dir"
 
 for clip in $(ls "$input_dir"); do
   input="$input_dir/$clip"
   base="${clip%.*}"
+
+  # Skip clips shorter than min_duration (accidental / very short takes).
+  clip_dur=$(ffprobe -v error -show_entries format=duration \
+    -of default=noprint_wrappers=1:nokey=1 "$input")
+  if [[ -n "$clip_dur" ]] && awk "BEGIN{exit !($clip_dur < $min_duration)}"; then
+    echo "Skipping $clip (${clip_dur}s < ${min_duration}s)"
+    continue
+  fi
+
   exclude_ranges="${EXCLUDES[$clip]:-}"
 
   if [ -z "$exclude_ranges" ]; then
