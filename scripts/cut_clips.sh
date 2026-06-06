@@ -15,7 +15,7 @@ fi
 source "$config_file"
 
 # Minimum clip length in seconds; shorter clips are skipped (0 disables).
-min_duration="${MIN_DURATION:-1.0}"
+min_duration="${MIN_DURATION:-10}"
 
 mkdir -p "$output_dir"
 

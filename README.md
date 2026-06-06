@@ -89,7 +89,7 @@ SUBTITLE="Elementary School Field Event"
 NAS_SOURCE_DIR="/path/to/nas/project_dir"
 
 # Clips shorter than this many seconds are skipped on `make cut` (0 disables).
-MIN_DURATION=1.0
+MIN_DURATION=10
 
 declare -A EXCLUDES=()
 EXCLUDES["C0010.MP4"]="00:03-00:08;00:15-00:20"
