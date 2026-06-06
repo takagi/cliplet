@@ -20,10 +20,14 @@ make
 
 If `PROJECT` is not specified, you'll be prompted to select one from the `projects/` directory using `fzf`.
 
-Or specify the project directory manually:
+Or run a project directly without the `fzf` prompt (a bare name is expanded to
+`projects/<name>`):
 
 ```bash
-make PROJECT=projects/example
+make example                 # full workflow on projects/example
+make cut example             # a single target on projects/example
+make PROJECT=example         # same; bare name is expanded to projects/example
+make PROJECT=projects/example # explicit path also works
 ```
 
 To create a new project directory under `projects/`:
@@ -34,7 +38,9 @@ make init example
 
 Available targets:
 
-- `make cut` – Cut or link clips using `config.sh`
+- `make dispatch` – Sort a `動画回収YYYY-MM-DD` bucket into per-event folders (see below)
+- `make mount` – Ensure the NAS SMB share is mounted (run automatically by `pull`/`all`)
+- `make cut` – Cut or link clips using `config.sh` (skips clips shorter than `MIN_DURATION`)
 - `make title` – Add title, subtitle, fade-in/out
 - `make combine` – Concatenate clips and encode audio
 - `make check` – Print info about final.mp4
@@ -44,6 +50,32 @@ Available targets:
 - `make pull` - Pull input_clips from NAS
 - `make push` - Push final.mp4 and config files to NAS
 - `make clean` – Remove output files
+
+## Sorting raw footage (`make dispatch`)
+
+Camera dumps land in a flat bucket on the NAS named `動画回収YYYY-MM-DD`.
+`make dispatch` turns that bucket into the per-event folders
+(`Movies/<year>/YYYY-MM-DD イベント名/input_clips/`) the rest of the workflow
+expects, so the event folder can be used directly as a project's `NAS_SOURCE_DIR`.
+
+It runs in two phases:
+
+1. **Generate a mapping and thumbnails.** Clips are grouped by capture date
+   (file mtime) and a `dispatch/<bucket>.tsv` is written, one row per date with
+   count/size/time span. A per-date contact sheet (one representative frame per
+   clip) is also written to `dispatch/thumbs/<bucket>/<date>.jpg` so you can see
+   what each day is before naming it.
+
+   ```bash
+   make dispatch                 # pick a 動画回収* bucket with fzf
+   make dispatch DUMP="/path/to/Movies/動画回収2026-01-21"
+   ```
+
+2. **Fill in event names and re-run.** Look at the contact sheets, then edit the
+   `=> EVENT` column. Dates that
+   share the same name merge into one folder (multi-day trips), prefixed with the
+   earliest date; blank leaves those clips in place. Re-running shows a dry-run
+   and asks for confirmation before moving (`mv`) the clips.
 
 ## Sample files
 
@@ -55,6 +87,9 @@ Available targets:
 TITLE="Sports Day 2024"
 SUBTITLE="Elementary School Field Event"
 NAS_SOURCE_DIR="/path/to/nas/project_dir"
+
+# Clips shorter than this many seconds are skipped on `make cut` (0 disables).
+MIN_DURATION=1.0
 
 declare -A EXCLUDES=()
 EXCLUDES["C0010.MP4"]="00:03-00:08;00:15-00:20"
