@@ -1,5 +1,6 @@
 #!/bin/bash
 # Add title and fade-in to the first clip, fade-out to the last clip using VAAPI with progress and logging
+set -euo pipefail
 
 project_dir="$1"
 clip_dir="$project_dir/output/cut_clips"
@@ -26,8 +27,13 @@ fi
 mkdir -p "$project_dir/output"
 > "$log_file"
 
-first_clip=$(ls "$clip_dir"/*.mp4 | sort | head -n 1)
-last_clip=$(ls "$clip_dir"/*.mp4 | sort | tail -n 1)
+mapfile -t clips < <(ls "$clip_dir"/*.mp4 2>/dev/null | sort)
+if [[ ${#clips[@]} -eq 0 ]]; then
+  echo "No clips in $clip_dir" >&2
+  exit 1
+fi
+first_clip="${clips[0]}"
+last_clip="${clips[-1]}"
 
 # --- Title and fade-in on first clip ---
 echo "Adding title and fade-in to: $(basename "$first_clip")"

@@ -175,7 +175,7 @@ echo
 for e in "${!EV_CNT[@]}"; do
   earliest="${EV_EARLIEST[$e]}"
   year="${earliest:0:4}"
-  printf '  %s clips -> %s/%s/%s %s/input_clips/\n' \
+  printf '  %s clips -> %s/%s/【未編集】%s %s/input_clips/\n' \
     "${EV_CNT[$e]}" "$movies_dir" "$year" "$earliest" "$e"
 done | sort
 echo
@@ -192,7 +192,8 @@ for f in "${files[@]}"; do
   [[ -z "$e" ]] && continue
   earliest="${EV_EARLIEST[$e]}"
   year="${earliest:0:4}"
-  dest="$movies_dir/$year/$earliest $e/input_clips"
+  # Mark freshly-sorted footage as unedited; drop 【未編集】 by hand once edited.
+  dest="$movies_dir/$year/【未編集】$earliest $e/input_clips"
   mkdir -p "$dest"
   mv -n "$f" "$dest"/
 done

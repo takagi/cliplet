@@ -1,5 +1,6 @@
 #!/bin/bash
 # Cut or link clips based on exclusion ranges in config.sh for a given project directory
+set -euo pipefail
 
 project_dir="$1"
 input_dir="$project_dir/input_clips"
