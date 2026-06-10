@@ -35,9 +35,9 @@ ifeq ($(origin PROJECT), undefined)
   endif
 endif
 
-# `make` runs everything except the YouTube upload; run `make publish <name>`
-# separately to publish.
-all: mount pull cut title combine check push
+# `make` runs everything except the YouTube upload (push, then mark the NAS
+# folder edited); run `make publish <name>` separately to publish.
+all: mount pull cut title combine check push edited
 
 mount:
 	bash scripts/mount_nas.sh
