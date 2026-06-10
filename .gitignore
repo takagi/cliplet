@@ -3,3 +3,7 @@ projects/*
 
 client_secrets.json
 credentials.json
+.env.local
+dispatch/
+queue.txt
+logs/

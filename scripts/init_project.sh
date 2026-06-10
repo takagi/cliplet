@@ -1,14 +1,44 @@
 #!/bin/bash
-# Initialize a new cliplet project directory with sample input files
+# Initialize a new cliplet project, auto-filling config.sh from a NAS event
+# folder (the "<YYYY-MM-DD> <event>" folders that dispatch.sh produces). The
+# project directory is named after the event unless a name is given explicitly.
+set -euo pipefail
 
-project_arg="$1"
+script_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 
-if [ -z "$project_arg" ]; then
-  echo "Usage: $0 <project-name | project_dir>"
-  exit 1
+# Optional explicit project name/dir; otherwise derived from the chosen event.
+project_arg="${1:-}"
+
+# Pick the NAS event folder (override with NAS=... to skip the picker).
+bash "$script_dir/mount_nas.sh"
+movies="$XDG_RUNTIME_DIR/gvfs/smb-share:server=synology,share=mtakagi/Movies"
+
+nas_dir="${NAS:-}"
+if [[ -z "$nas_dir" ]]; then
+  nas_dir=$(ls -dt "$movies"/*/*/ 2>/dev/null | fzf) || true
+  if [[ -z "$nas_dir" ]]; then
+    echo "No event folder selected." >&2
+    exit 1
+  fi
 fi
+nas_dir="${nas_dir%/}"
 
-if [[ "$project_arg" == */* ]]; then
+# TITLE from the folder name: "[【未編集】]YYYY-MM-DD <event>" -> "<event> <year>".
+folder="$(basename "$nas_dir")"
+folder="${folder#【未編集】}"        # drop the unedited marker if present
+event="${folder#[0-9][0-9][0-9][0-9]-[0-9][0-9]-[0-9][0-9] }"
+year="${folder:0:4}"
+title="$event $year"
+
+# Project directory: explicit arg wins, otherwise named after the event.
+if [[ -z "$project_arg" ]]; then
+  # Name the project after the event. Repeats of the same event are kept
+  # distinct by their event name (e.g. "ディズニーシー 1月" / "2月"); a
+  # genuine collision still trips the config.sh-exists guard below.
+  # Strip spaces from the directory name so unquoted $(PROJECT) in the
+  # Makefile never word-splits; TITLE keeps the spaces for the video.
+  project_dir="projects/${event// /}"
+elif [[ "$project_arg" == */* ]]; then
   project_dir="$project_arg"
 else
   project_dir="projects/$project_arg"
@@ -21,19 +51,22 @@ fi
 
 mkdir -p "$project_dir/input_clips"
 
-cat > "$project_dir/config.sh" <<'EOF'
+cat > "$project_dir/config.sh" <<EOF
 #!/bin/bash
 
-# Project metadata
-TITLE="Your Title Here"
-SUBTITLE="Your Subtitle Here"
+# Auto-filled by 'make init' from the chosen NAS event folder.
+# SUBTITLE is filled in by 'make pull' from the clip dates.
+TITLE="$title"
+SUBTITLE=""
+NAS_SOURCE_DIR="$nas_dir"
 
-# NAS base directory containing input_clips/
-NAS_SOURCE_DIR="/path/to/nas/project_dir"
-
-# Optional exclusion ranges per clip (format: "start-end;start-end")
+# Optional per-clip exclusion ranges (format: "start-end;start-end"); unused by default.
 declare -A EXCLUDES=()
-# EXCLUDES["C0001.mp4"]="12.5-18.2;30.0-42.0"
 EOF
 
-echo "Initialized project at $project_dir"
+# Human-readable summary on stderr; the project dir on stdout so callers
+# (e.g. `make new`) can capture it.
+echo "Initialized project at $project_dir" >&2
+echo "  TITLE=$title" >&2
+echo "  NAS_SOURCE_DIR=$nas_dir" >&2
+echo "$project_dir"

@@ -8,6 +8,8 @@ config_file="$project_dir/config.sh"
 secrets_dir=".youtube-upload"
 docker_image="youtube-upload"
 
+source .env.local
+
 if [[ ! -f "$config_file" ]]; then
   echo "config.sh not found in $project_dir" >&2
   exit 1
@@ -41,4 +43,17 @@ docker run --rm \
   --title "$title" \
   --description "$description" \
   --privacy private \
-  /home/python/output/final.mp4
+  /home/python/output/final.mp4 \
+  --playlist "${PLAYLIST}"
+
+# Mark this event as published on the NAS (presence of published.log = published).
+# Reached only on a successful upload thanks to `set -e`.
+if [[ -n "${NAS_SOURCE_DIR:-}" ]]; then
+  bash "$(dirname "$0")/mount_nas.sh"
+  if [[ -d "$NAS_SOURCE_DIR" ]]; then
+    printf '%s\t%s\n' "$(date '+%Y-%m-%d %H:%M:%S')" "$title" >> "$NAS_SOURCE_DIR/published.log"
+    echo "Marked published: $NAS_SOURCE_DIR/published.log"
+  else
+    echo "Note: NAS_SOURCE_DIR not found ($NAS_SOURCE_DIR); skipped published.log" >&2
+  fi
+fi

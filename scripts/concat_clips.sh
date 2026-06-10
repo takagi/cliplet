@@ -26,10 +26,19 @@ done
 total_duration=$(printf "%.1f" "$total_duration")
 
 # Start concatenation with progress tracking
-ffmpeg -y -hide_banner -f concat -safe 0 -i concat_list.txt \
-  -c:v copy -c:a aac -b:a 192k \
+ffmpeg -y -hide_banner \
+  -f concat -safe 0 -i concat_list.txt \
+  -c:v h264_nvenc \
+  -preset p6 \
+  -rc vbr \
+  -cq 18 \
+  -b:v 0 \
+  -profile:v high \
+  -g 30 -bf 2 -refs 3 \
+  -c:a aac -b:a 192k \
   -movflags +faststart \
-  -progress pipe:1 -stats final.mp4 2>> concat_clips.log | \
+  -progress pipe:1 -stats \
+  final.mp4 2>> concat_clips.log | \
 while IFS='=' read -r key value; do
   if [[ "$key" == "out_time_ms" ]]; then
     seconds=$(echo "$value / 1000000" | bc -l)
