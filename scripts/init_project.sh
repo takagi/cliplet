@@ -32,9 +32,12 @@ title="$event $year"
 
 # Project directory: explicit arg wins, otherwise named after the event.
 if [[ -z "$project_arg" ]]; then
-  # Name the project "<event>_<YYYY-MM-DD>" so repeats of the same event
-  # (e.g. multiple ズーラシア visits) never collide.
-  project_dir="projects/${event}_${folder%% *}"
+  # Name the project after the event. Repeats of the same event are kept
+  # distinct by their event name (e.g. "ディズニーシー 1月" / "2月"); a
+  # genuine collision still trips the config.sh-exists guard below.
+  # Strip spaces from the directory name so unquoted $(PROJECT) in the
+  # Makefile never word-splits; TITLE keeps the spaces for the video.
+  project_dir="projects/${event// /}"
 elif [[ "$project_arg" == */* ]]; then
   project_dir="$project_arg"
 else
