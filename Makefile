@@ -18,7 +18,7 @@ ifneq ($(origin PROJECT), undefined)
 endif
 
 # Targets that pick/derive their own project (so they need no PROJECT here).
-NO_PROJECT := mount dispatch patch-youtube-upload init new queue status enqueue
+NO_PROJECT := mount dispatch patch-youtube-upload init new queue status enqueue purge
 # Goals that need a project (no goals => default `all`).
 GOALS := $(if $(MAKECMDGOALS),$(MAKECMDGOALS),all)
 NEED_PROJECT := $(filter-out $(NO_PROJECT),$(GOALS))
@@ -103,4 +103,8 @@ queue:
 status:
 	bash scripts/status.sh
 
-.PHONY: all cut title combine check check-raw publish init new pull push patch-youtube-upload clean edited mount dispatch enqueue queue status
+# Delete local project directories once pushed and published.
+purge:
+	bash scripts/purge.sh $(if $(DRY),-n,)
+
+.PHONY: all cut title combine check check-raw publish init new pull push patch-youtube-upload clean edited mount dispatch enqueue queue status purge
