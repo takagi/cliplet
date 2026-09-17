@@ -1,5 +1,5 @@
 projects/*
-!projects/example/**
+!projects/example/
 
 client_secrets.json
 credentials.json
